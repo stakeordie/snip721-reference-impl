@@ -12,6 +12,13 @@ on:
         type: string
         default: "5000000"
 
+      network:
+        description:  "Blockchain network to use"
+        required: true
+        type: choice
+        options: ["testnet", "mainnet"]
+        default: "testnet"
+
 jobs:
 
   store:
@@ -29,15 +36,18 @@ jobs:
     - name: Create .env file
       env:
         mnemonic: ${{ secrets.MNEMONIC }}
-        grpc_web_url: ${{ secrets.GRPC_WEB_URL }}
         gas_limit: ${{ inputs.gas }}
-        chain_id: ${{ secrets.CHAIN_ID }}
       run: |
         touch .env
         echo "MNEMONIC='${mnemonic}'" >> .env
         echo "GAS_LIMIT='${gas_limit}'" >> .env
-        echo "SECRET_GRPC_WEB_URL='${grpc_web_url}'" >> .env
-        echo "SECRET_CHAIN_ID='${chain_id}'" >> .env
+        if [ "${{ inputs.network }}" = "mainnet" ]; then
+          echo "SECRET_GRPC_WEB_URL='https://secret-4.api.trivium.network:9091'" >> .env
+          echo "SECRET_CHAIN_ID='secret-4'" >> .env
+        else
+          echo "SECRET_GRPC_WEB_URL='https://grpc.pulsar.scrttestnet.com'" >> .env
+          echo "SECRET_CHAIN_ID='pulsar-2'" >> .env
+        fi
 
     - name: unzip Contract-Info
       run: unzip *.zip
